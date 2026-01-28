@@ -2,13 +2,13 @@
 A set of Minecraft ComputerCraft Tweaked (CC:Tweaked) scripts that provide visual and safety measures to a Mekanism Fission reactor.
 
 # Features
-## Powered by Basalt UI Framework
+1) Powered by Basalt UI Framework
 https://github.com/Pyroxenium/Basalt2 
 
-## Real-time statistics
+2) Real-time statistics
 <img width="2560" height="1440" alt="2026-01-28_00 38 21" src="https://github.com/user-attachments/assets/511bd6e2-8d64-49b1-94ca-0937be43ff3c" />
 
-## Automatic reactor SCRAM protection systems
+3) Automatic reactor SCRAM protection systems
 
 # How to use
 ## ARC_Manager
