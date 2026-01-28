@@ -1,3 +1,6 @@
+--Change this to your computer ID
+local reactorMonitorComputerID = 1
+
 --[[
 Method Name 	Additional Info
 activate(): 	Will activate the reactor.
@@ -35,9 +38,6 @@ end
 
 --Config
 local reactorMaxTemp = 1100 -- kelvin
-
---Change this to your computer ID
-local reactorMonitorComputerID = 1
 
 local rednetModem = peripheral.find("modem", rednet.open)
 
