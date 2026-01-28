@@ -1,10 +1,14 @@
+local function UninstallFiles()
+    fs.delete("Basalt.lua")
+    fs.delete("ARC_Manager.lua")
+end
 
 local function InstallFiles()
     print("Starting installation...")
 
     local linkTable = {
         "https://raw.githubusercontent.com/Pyroxenium/Basalt2/refs/heads/main/release/basalt-full.lua",
-        "https://raw.githubusercontent.com/Nooble12/CC-Tweaked-Adaptive-Reactor-Control-ARC-/refs/heads/ARC-V1/MekanismReactorControl/ARC_Manager.lua"
+        "https://raw.githubusercontent.com/Nooble12/CC-Tweaked-Adaptive-Reactor-Control-ARC-/refs/heads/ARC-V1/MekanismReactorControl/src/ARC_Manager.lua"
     }
 
     for i = 1, #linkTable do
@@ -22,4 +26,5 @@ local function InstallFiles()
     fs.move("basalt-full.lua", "basalt.lua")
 end
 
+UninstallFiles()
 InstallFiles()
