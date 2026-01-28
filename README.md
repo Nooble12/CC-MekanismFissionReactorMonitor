@@ -39,4 +39,3 @@ Make sure that the "reactorMonitorComputerID" variable in the ARC_Manager is set
 
 ## Black screen issue
 If the program is running but there is a black screen, restart the program. Not sure why it does this. Happens when you run the program for the first time.
-  
