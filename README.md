@@ -15,7 +15,8 @@ https://github.com/Pyroxenium/Basalt2
 1) Place a computer on the fission reactor's Logic Adapter port.
   2) Then install the "ARC_Manager" program onto the computer.
   3) Place a wireless ender modem on the computer.
-  4) Run the program by typing the file name in the computer's command line.
+  4) Edit the "reactorMonitorComputerID" variable in the program to match your monitor computer's id. To find id, type id in the monitor computer's shell. 
+  5) Run the program by typing the file name in the computer's command line.
 
  ## ARC_Monitor
 6) Set up a large monitor multi-block structure.
@@ -35,6 +36,9 @@ https://github.com/Pyroxenium/Basalt2
 # Not working?
 ## Did you install Basalt UI Framework? Release (Full) 
 To download the Basalt Installer UI using a ComputerCraft shell command: wget run https://raw.githubusercontent.com/Pyroxenium/Basalt2/main/install.lua -f
+
+## No data coming to the monitor?
+Make sure that the "reactorMonitorComputerID" variable in the ARC_Manager is set to the monitor computer's id. To find id, type "id" in the computer's shell.
 
 ## Black screen issue
 If the program is running but there is a black screen, restart the program. Not sure why it does this. Happens when you run the program for the first time.
