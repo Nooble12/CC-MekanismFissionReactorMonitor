@@ -164,7 +164,7 @@ local warningTextBox = subFrame
 :setText("No current warnings"):setBackground(colors.gray)
 :setSize(math.floor(monitorWidth * 0.70), math.ceil(monitorHeight * 0.15))
 :alignBottom(subFrame, 0)
-
+:setForeground(colors.red)
 
 -------------------------------------------------------------------------
 --- User Interface Code
@@ -230,37 +230,64 @@ local function UpdateMonitor(newDataTable, barTable, labelTable)
 end
 
 local function CheckIfModemFound()
-    if (rednet.isOpen()) then
-        return
+    while true do
+        if (not rednet.isOpen()) then
+            DisplayError("Error, could not find modem!" , true)
+            local rednetModem = peripheral.find("modem", rednet.open)
+            os.sleep(1)
+        else
+             DisplayError("Found!", false)
+            subFrame:setVisible(true)
+        end
+    os.sleep(1)
     end
+end
 
-    while (not rednet.isOpen()) do
-        DisplayError("Error, could not find modem!" , true)
-        local rednetModem = peripheral.find("modem", rednet.open)
-        os.sleep(1)
+local function UpdateWarningTextBox(warningData)
+    for _, line in ipairs(warningData) do
+        warningTextBox:setText(line .. "\n")
     end
-    DisplayError("Found!", false)
-    subFrame:setVisible(true)
+end
+
+local function TriggerAlarm()
+    redstone.setOutput("left", true)
+end
+
+local function DisableAlarm()
+    redstone.setOutput("left", false)
+end
+
+local function ListenForPackage()
+    local pairTable = CreateProgressBars() -- contains progressBars objects
+    local reactorInfoLabelTable = CreateReactorInfoLabels() -- Holds all the labels for the reactor info frame
+    while true do
+        local senderID, message, protocol = rednet.receive()
+        if type(message) == "table" and message.type == "reactorData" then
+            UpdateMonitor(message.data, pairTable, reactorInfoLabelTable)
+            reactorSenderID = senderID
+        end
+
+        if type(message) == "table" and message.type == "warningData" then
+            UpdateWarningTextBox(message.data)
+            if (#message.data > 0) then
+                TriggerAlarm()
+                subFrame:setBackground(colors.red)
+            else
+                DisableAlarm()
+                warningTextBox:setText("No issues.")
+                subFrame:setBackground(colors.black)
+            end
+            reactorSenderID = senderID
+        end
+        os.sleep(0.1)
+    end
 end
 
 local rednetModem = peripheral.find("modem", rednet.open)
-
 -- Main Loop that will update monitor states from the reactor computer via rednet
 local function InitalizeMonitoringSystem()
 
-    local pairTable = CreateProgressBars() -- contains progressBars objects
-    local reactorInfoLabelTable = CreateReactorInfoLabels() -- Holds all the labels for the reactor info frame
-
-    while true do 
-        CheckIfModemFound()
-
-    local senderID, message, protocol = rednet.receive()
-    if type(message) == "table" and message.type == "reactorData" then
-        UpdateMonitor(message.data, pairTable, reactorInfoLabelTable)
-        reactorSenderID = senderID
-    end
-        os.sleep(0.1)
-    end
+    parallel.waitForAny(ListenForPackage, CheckIfModemFound)
 end
 --------------------------------------------------------------------------------------------------------------------------------------------------
 --- Logic Code

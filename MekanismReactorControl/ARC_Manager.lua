@@ -57,6 +57,74 @@ local function GetReactorStatusAsString()
         return "Disabled"
     end
 end
+
+local function ScramReactor()
+    if (reactor.getStatus() == false) then
+        return
+    end
+
+    reactor.scram()
+end
+
+-- Checks reactor data to ensure that it is running within safe parameters
+local function RunSafetyChecks()
+    local warningList = {} -- holds a bunch of warning strings that will be sent to the computer
+    ------------------------------------------------------
+    --- Hard shut off checks
+    ------------------------------------------------------
+    if (reactor.getTemperature() > 1100) then
+        ScramReactor()
+        table.insert(warningList, "SCRAM: Maximum core temperature was exceeded.")
+        return warningList
+    end
+
+    if ((reactor.getCoolantFilledPercentage() * 100) < 30) then
+        ScramReactor()
+        table.insert(warningList, "SCRAM: Insufficent coolant.")
+        return warningList
+    end
+
+    if ((reactor.getWasteFilledPercentage()* 100 >= 90)) then
+        ScramReactor()
+        table.insert(warningList, "SCRAM: Maximum nulcear waste limit was exceeded.")
+        return warningList
+    end
+
+     if ((reactor.getHeatedCoolantFilledPercentage() * 100 >= 90)) then
+        ScramReactor()
+        table.insert(warningList, "SCRAM: Maximum steam limit was exceeded.")
+        return warningList
+    end
+    ------------------------------------------------------
+    --- Hard shut off checks
+    ------------------------------------------------------
+
+
+    ------------------------------------------------------
+    --- Warnings
+    ------------------------------------------------------
+    -- Sends a warning to the monitoring computer
+    if(reactor.getTemperature() > 880) then
+        table.insert(warningList, "Danger: Critical core temperature.")
+    end
+
+    if ((reactor.getCoolantFilledPercentage() * 100) < 50) then
+        table.insert(warningList, "Danger: Coolant is low.")
+    end
+
+    if ((reactor.getWasteFilledPercentage()* 100 >= 80)) then
+        table.insert(warningList, "Danger: Excess nuclear waste.")
+    end
+
+     if ((reactor.getHeatedCoolantFilledPercentage() * 100 >= 90)) then
+        table.insert(warningList, "Danger: Excess steam.")
+    end
+    ------------------------------------------------------
+    --- Warnings
+    ------------------------------------------------------
+    
+    return warningList
+end 
     
 
 local function GetReactorDataTable()
@@ -153,6 +221,13 @@ local function SendData()
             type = "reactorData",
             data = reactorDataTable
         })
+
+        --Sends potential warning data
+        local warningTable = RunSafetyChecks()
+        rednet.send(reactorMonitorComputerID, {
+            type = "warningData",
+            data = warningTable
+        }) 
         os.sleep(0.5) -- sleep for 1/2 second to prevent server overload 
     end
 end
