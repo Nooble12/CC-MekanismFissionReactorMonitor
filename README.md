@@ -11,10 +11,13 @@ https://github.com/Pyroxenium/Basalt2
 ## Automatic reactor SCRAM protection systems
 
 # How to use
+## ARC_Manager
 1) Place a computer on the fission reactor's Logic Adapter port.
   2) Then install the "ARC_Manager" program onto the computer.
   3) Place a wireless ender modem on the computer.
   4) Run the program by typing the file name in the computer's command line.
+
+ ## ARC_Monitor
 6) Set up a large monitor multi-block structure.
   7) Place a computer that touches any of the monitors.
   8) Install the "ARC_Monitor" program onto the computer.
@@ -23,10 +26,10 @@ https://github.com/Pyroxenium/Basalt2
   11) Place a wireless ender modem on the computer.
   12) Run the program.
 
-## Example Setup
-### ARC_Monitor
+# Example Setup
+## ARC_Monitor
 <img width="2560" height="1440" alt="2026-01-28_00 44 03" src="https://github.com/user-attachments/assets/de53771b-7d5e-4c8f-a8a8-9d8a20c8af0a" />
-### ARC_Manager
+## ARC_Manager
 <img width="2560" height="1440" alt="2026-01-28_00 44 33" src="https://github.com/user-attachments/assets/80e22d3a-d28d-4bc7-b924-9063c3efdb19" />
 
 # Not working?
