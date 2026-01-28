@@ -1,5 +1,14 @@
 local programVersion = "1.0"
 local monitor = peripheral.find("monitor")
+
+while (not monitor) do
+    print("Error, could not find monitor. Trying again.")
+    os.sleep(1)
+    term.clear()
+    term.setCursorPos(1,1)
+    monitor = peripheral.find("monitor")
+end
+
 local monitorWidth, monitorHeight = monitor.getSize()
 local basalt = require("basalt")
 local mainFrame = basalt.createFrame():setTerm(monitor):setBackground(colors.black):setSize(monitor.getSize())
