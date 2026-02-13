@@ -1,5 +1,5 @@
---Change this to your computer ID
-local reactorMonitorComputerID = 1
+-- An array of multiple different computer ID to send packages to.
+local computerTargets = {-1, -2} 
 
 --[[
 Method Name 	Additional Info
@@ -216,18 +216,29 @@ end
 
 local function SendData()
     while true do
-        local reactorDataTable = GetReactorDataTable()
-        rednet.send(reactorMonitorComputerID, {
-            type = "reactorData",
-            data = reactorDataTable
-        })
+        local routineTable = {}
 
-        --Sends potential warning data
+        local reactorDataTable = GetReactorDataTable()
+         --Sends potential warning data
         local warningTable = RunSafetyChecks()
-        rednet.send(reactorMonitorComputerID, {
-            type = "warningData",
-            data = warningTable
-        }) 
+
+        for _, id in ipairs(computerTargets) do
+            table.insert(routineTable, coroutine.create(function ()
+                rednet.send(id, {
+                    type = "reactorData",
+                    data = reactorDataTable
+                })
+
+                rednet.send(id, {
+                    type = "warningData",
+                    data = warningTable
+                }) 
+            end))
+        end
+
+        for _, c in ipairs(routineTable) do
+            coroutine.resume(c)
+        end
         os.sleep(0.5) -- sleep for 1/2 second to prevent server overload 
     end
 end
