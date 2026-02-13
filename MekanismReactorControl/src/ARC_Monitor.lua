@@ -272,13 +272,11 @@ local function ListenForPackage()
     while true do
         local senderID, message, protocol = rednet.receive()
         if type(message) == "table" and message.type == "reactorData" then
-            UpdateMonitor(message.data, pairTable, reactorInfoLabelTable)
+            UpdateMonitor(message.reactorData, pairTable, reactorInfoLabelTable)
             reactorSenderID = senderID
-        end
 
-        if type(message) == "table" and message.type == "warningData" then
-            UpdateWarningTextBox(message.data)
-            if (#message.data > 0) then
+            if (#message.warningData > 0) then
+                UpdateWarningTextBox(message.warningData)
                 TriggerAlarm()
                 subFrame:setBackground(colors.red)
             else
@@ -286,7 +284,6 @@ local function ListenForPackage()
                 warningTextBox:setText("No issues.")
                 subFrame:setBackground(colors.black)
             end
-            reactorSenderID = senderID
         end
         os.sleep(0.1)
     end

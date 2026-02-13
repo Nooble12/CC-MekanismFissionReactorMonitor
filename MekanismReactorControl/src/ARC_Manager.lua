@@ -226,13 +226,9 @@ local function SendData()
             table.insert(routineTable, coroutine.create(function ()
                 rednet.send(id, {
                     type = "reactorData",
-                    data = reactorDataTable
+                    reactorData = reactorDataTable,
+                    warningData = warningTable
                 })
-
-                rednet.send(id, {
-                    type = "warningData",
-                    data = warningTable
-                }) 
             end))
         end
 
