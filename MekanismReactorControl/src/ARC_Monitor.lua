@@ -1,4 +1,4 @@
-local programVersion = "1.0"
+local programVersion = "1.1.0"
 local monitor = peripheral.find("monitor")
 
 while (not monitor) do
@@ -345,8 +345,10 @@ end)
 --- Terminal Startup Screen
 -------------------------------------------------------------------------
 term.clear()
+term.setCursorPos(1,1)
 print("ARC Version " .. programVersion)
 print("Powered by Basalt UI Framework")
+print("Computer ID: " .. os.getComputerID())
 -------------------------------------------------------------------------
 --- Terminal Startup Screen
 -------------------------------------------------------------------------
