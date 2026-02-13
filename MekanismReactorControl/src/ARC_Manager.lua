@@ -251,8 +251,12 @@ while true do
                 reactor.scram()
                 print("Reactor is now off")
             else
-                reactor.activate()
-                print("Reactor is now on")
+                local warningTable = RunSafetyChecks()
+
+                if (#warningTable == 0) then
+                    reactor.activate()
+                    print("Reactor is now on") 
+                end
             end
         end
         os.sleep(0.1)
