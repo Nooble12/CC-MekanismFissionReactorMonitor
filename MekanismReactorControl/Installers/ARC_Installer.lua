@@ -1,17 +1,13 @@
 local version = "1.0.0"
 
-local function InstallBasalt()
-    shell.run("wget", "https://raw.githubusercontent.com/Pyroxenium/Basalt2/refs/heads/main/release/basalt-full.lua", "basalt.lua")
-end
-
 if not (fs.exists("basalt.lua")) then
-    InstallBasalt()
+    shell.run("wget", "https://raw.githubusercontent.com/Pyroxenium/Basalt2/refs/heads/main/release/basalt-full.lua", "basalt.lua")
+
     if (fs.exists("basalt.lua")) then
-        print("Basalt installed!\n\n")
-        shell.run("ARC_Installer")
+        print("\nPlease Run: ARC_Installer.lua")
         return
     else
-        print("Installed Failed. Try Again.")
+        print("Error, could not install Basalt. Try Again.")
     end
 end
 
