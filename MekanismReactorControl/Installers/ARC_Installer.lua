@@ -1,13 +1,21 @@
+--[[
+@author Nooble12 | https://github.com/Nooble12
+@repo https://github.com/Nooble12/CC-Tweaked-Adaptive-Reactor-Control-ARC-
+A simple installer program for Adaptive Reactor Control (ARC).
+
+@credits Uses Basalt2 UI framework | https://github.com/Pyroxenium/Basalt2
+]]
+
 local version = "1.0.0"
 
 if not (fs.exists("basalt.lua")) then
     shell.run("wget", "https://raw.githubusercontent.com/Pyroxenium/Basalt2/refs/heads/main/release/basalt-full.lua", "basalt.lua")
 
     if (fs.exists("basalt.lua")) then
-        print("\nPlease Run: ARC_Installer.lua")
-        return
+        print("\n Basalt installed. Loading ARC_Installer.")
     else
         print("Error, could not install Basalt. Try Again.")
+        return
     end
 end
 
