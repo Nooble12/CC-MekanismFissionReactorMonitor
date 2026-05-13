@@ -7,6 +7,13 @@ end
 
 if not (fs.exists("basalt.lua")) then
     InstallBasalt()
+    if (fs.exists("basalt.lua")) then
+        print("Basalt installed!")
+        print("Restarting program...")
+        shell.run(shell.getRunningProgram())
+
+        return
+    end
 end
 
 ------------------------------------------------------------------------------------------------------------------
