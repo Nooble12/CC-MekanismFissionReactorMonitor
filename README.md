@@ -16,7 +16,8 @@ https://github.com/Pyroxenium/Basalt2
 # Installation
 ## ARC_Installer
 To simplify the process, ARC-related scripts can be installed via the dedicated ARC_Installer.lua. You may also opt to install the code manually from the "src" folder.
-1) In the computer's shell, type: "wget run https://raw.githubusercontent.com/Nooble12/CC-Tweaked-Adaptive-Reactor-Control-ARC-/refs/heads/ARC-V1/MekanismReactorControl/Installers/ARC_Installer.lua"
+1) In the computer's shell, type: "wget https://raw.githubusercontent.com/Nooble12/CC-Tweaked-Adaptive-Reactor-Control-ARC-/refs/heads/ARC-V1/MekanismReactorControl/Installers/ARC_Installer.lua"
+1B) Then run "ARC_Installer.lua" on your computer and select the needed program to install.
 
 ## ARC_Manager
 2) Place a computer on the fission reactor's Logic Adapter port.
