@@ -31,22 +31,22 @@ local scrollFrame = subFrame:addScrollFrame():setBackground(colors.gray):setSize
 -- Info Frame UI
 -- The frame on the right side that contains the file name, info, and install button.
 local infoFrame = subFrame:addFrame():setBackground(colors.gray):alignRight(subFrame, 0):setSize(main:getWidth() / 2, main:getHeight())
-local infoScrollFrame = infoFrame:addScrollFrame():alignTop(infoFrame, 0):setSize(infoFrame:getWidth(), math.floor(infoFrame:getHeight() * (5/6))):setBackground(colors.gray)
+local infoScrollFrame = infoFrame:addScrollFrame():alignTop(infoFrame, 0):setSize(math.floor(infoFrame:getWidth()), math.floor(infoFrame:getHeight() * (5/6))):setBackground(colors.gray)
 
 local fileNameLabel = infoScrollFrame:addLabel()
-:setSize(main:getWidth() / 3, math.floor(main:getHeight() / 6))
-:setText("")
+:setSize((math.floor(infoScrollFrame:getWidth() * (11/12))), math.floor(infoScrollFrame:getHeight() / 6))
+:setText("Select a file.")
 :setForeground(colors.white)
 :alignTop(infoScrollFrame, math.floor(infoScrollFrame:getHeight() / 12))
-:alignLeft(infoScrollFrame, math.floor(infoScrollFrame:getWidth() / 12))
+:alignLeft(infoScrollFrame, math.floor(infoScrollFrame:getWidth() * (1/12)))
 
 local fileDescLabel = infoScrollFrame
 :addLabel()
-:setSize(main:getWidth() / 3, math.floor(main:getHeight() / 3))
+:setSize(math.floor(infoScrollFrame:getWidth() * (11/12)), math.floor(infoScrollFrame:getHeight() * (11/12)))
 :setForeground(colors.white)
 :setAutoSize(false)
-:alignBottom(fileNameLabel,0)
-:alignLeft(infoScrollFrame, math.floor(infoScrollFrame:getWidth() / 12))
+:alignBottom(fileNameLabel, math.floor(fileNameLabel:getHeight() * (11/12)))
+:alignLeft(infoScrollFrame, math.floor(infoScrollFrame:getWidth() * (1/12)))
 fileDescLabel:setText("")
 
 local installButton = infoFrame:addButton():setBackground(colors.green):setSize(infoFrame:getWidth(), math.floor(infoFrame:getHeight() / 6)):setText("Install"):alignBottom(infoFrame, 0):setVisible(false)
@@ -61,7 +61,7 @@ local exitInstallMenuButton = installFrame:addButton()
 :alignBottom(installFrame, 0)
 :setText("Exit"):setPosition(0,15)
 
-local installLabel = installFrame:addLabel():setForeground(colors.white):setAutoSize(false):setSize(installFrame:getWidth() / 2, installFrame:getHeight() / 10 )
+local installLabel = installFrame:addLabel():setForeground(colors.white):setAutoSize(false):setSize(math.floor(installFrame:getWidth()), installFrame:getHeight() / 10 )
 installLabel:setText("")
 -- Install UI
 
@@ -101,7 +101,7 @@ local fileTable =
 
 local buttonTable = {}
 
-local selectedFile = {}
+local selectedFile = nil
 
 local function UpdateSubFrame()
     fileNameLabel:setText(selectedFile.name)
@@ -167,7 +167,7 @@ installButton:onClick(function (self)
     end)
 end)
 
-local function HandleButtonClick(inButton, index)
+local function UpdateSelectedButton(inButton)
     for _, button in ipairs(buttonTable) do
         if (inButton == button) then
             button:setBackground(colors.green)
@@ -175,6 +175,10 @@ local function HandleButtonClick(inButton, index)
             button:setBackground(colors.gray)
         end
     end
+end
+
+local function HandleButtonClick(inButton, index)
+    UpdateSelectedButton(inButton)
     selectedFile = fileTable[index] -- sets the selected file
     UpdateSubFrame()
 end
@@ -184,7 +188,7 @@ local function AddButtonsToScrollBar()
     local buttonWidth = math.floor(scrollFrame:getWidth() * (11/12))
     for index, file in ipairs(fileTable) do
         local button = scrollFrame:addButton():setBackground(colors.gray):setText(file.name):setSize(buttonWidth,buttonHeight):setForeground(colors.white):alignLeft(scrollFrame,0)
-        button:setPosition(0, (index - 1) * buttonHeight)
+        button:setPosition(0, ((index - 1) * buttonHeight))
         button:onClick(function (self)
             HandleButtonClick(button, index)
         end)
