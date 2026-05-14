@@ -49,7 +49,7 @@ local fileDescLabel = infoScrollFrame
 :alignLeft(infoScrollFrame, math.floor(infoScrollFrame:getWidth() / 12))
 fileDescLabel:setText("")
 
-local installButton = infoFrame:addButton():setBackground(colors.green):setSize(infoFrame:getWidth(), math.floor(infoFrame:getHeight() / 6)):setText("Install"):alignBottom(infoFrame, 0)
+local installButton = infoFrame:addButton():setBackground(colors.green):setSize(infoFrame:getWidth(), math.floor(infoFrame:getHeight() / 6)):setText("Install"):alignBottom(infoFrame, 0):setVisible(false)
 -- Info Frame UI
 
 local installFrame = main:addFrame():setBackground(colors.blue):setSize(main:getWidth(), main:getHeight()):setVisible(false)
