@@ -52,12 +52,18 @@ fileDescLabel:setText("")
 local installButton = infoFrame:addButton():setBackground(colors.green):setSize(infoFrame:getWidth(), math.floor(infoFrame:getHeight() / 6)):setText("Install"):alignBottom(infoFrame, 0):setVisible(false)
 -- Info Frame UI
 
+-- Install UI
 local installFrame = main:addFrame():setBackground(colors.blue):setSize(main:getWidth(), main:getHeight()):setVisible(false)
-
-local exitInstallMenuButton = installFrame:addButton():setBackground(colors.green):setSize(installFrame:getWidth() / 6, installFrame:getHeight() / 6):setText("Exit"):setPosition(0,15)
+local exitInstallMenuButton = installFrame:addButton()
+:setBackground(colors.green)
+:setSize(math.floor(installFrame:getWidth() / 4), math.floor(installFrame:getHeight() / 6))
+:alignLeft(installFrame, 0)
+:alignBottom(installFrame, 0)
+:setText("Exit"):setPosition(0,15)
 
 local installLabel = installFrame:addLabel():setForeground(colors.white):setAutoSize(false):setSize(installFrame:getWidth() / 2, installFrame:getHeight() / 10 )
 installLabel:setText("")
+-- Install UI
 
 main:addLabel()
     :setText("ARC Installer Version " .. version)
@@ -88,9 +94,9 @@ local fileTable =
 
     {
         name  = "ARC Mobile",
-        description = "Currently WIP and is not implemented yet. This is just a test.",
-        link = "https://raw.githubusercontent.com/Nooble12/CC-Tweaked-Adaptive-Reactor-Control-ARC-/refs/heads/ARC-V1/MekanismReactorControl/src/ARC_Monitor.lua"
-    }
+        description = "Currently WIP and is not implemented yet. Soon (TM)",
+        link = "Yareli is best fish"
+    },
 }
 
 local buttonTable = {}
@@ -141,8 +147,12 @@ local function InstallFile(inFile)
         file.close()
 
         response.close()
+    end
+    if (fs.exists(filename)) then
+        installFrame:setBackground(colors.blue)
         installLabel:setText("Installation Complete\n\nFile Saved As ".. filename)
     else
+        installFrame:setBackground(colors.red)
         installLabel:setText("Error, could not install. Did you enable http in the settings?")
     end
 
