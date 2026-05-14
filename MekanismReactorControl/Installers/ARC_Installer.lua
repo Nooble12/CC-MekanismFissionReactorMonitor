@@ -24,23 +24,39 @@ end
 ------------------------------------------------------------------------------------------------------------------
 local basalt = require("basalt")
 
-local main = basalt.getMainFrame():setBackground(colors.black)
-local subFrame = main:addFrame():setBackground(colors.blue):setSize(60, 20)
-local fileFrame = subFrame:addFrame():setBackground(colors.gray):setSize(30,20)
-local scrollFrame = subFrame:addScrollFrame():setBackground(colors.black):setSize(30,20):centerVertical(fileFrame):centerHorizontal(fileFrame)
+local main = basalt.getMainFrame():setBackground(colors.black) -- main width is 60, height is 30
+local subFrame = main:addFrame():setBackground(colors.gray):setSize(main:getWidth(), main:getHeight()):alignRight(main,0)
+local scrollFrame = subFrame:addScrollFrame():setBackground(colors.gray):setSize(main:getWidth() / 2, main:getHeight()):alignLeft(subFrame, 0)
 
-local infoFrame = subFrame:addFrame():setBackground(colors.gray):rightOf(scrollFrame, 1):setSize(21,20)
-local fileNameLabel = infoFrame:addLabel():setSize(20,3):setText(""):setForeground(colors.white):setPosition(2,2)
-local fileDescLabel = infoFrame:addLabel():setSize(20,10):setForeground(colors.white):setPosition(2, 4):setAutoSize(false)
+-- Info Frame UI
+-- The frame on the right side that contains the file name, info, and install button.
+local infoFrame = subFrame:addFrame():setBackground(colors.gray):alignRight(subFrame, 0):setSize(main:getWidth() / 2, main:getHeight())
+local infoScrollFrame = infoFrame:addScrollFrame():alignTop(infoFrame, 0):setSize(infoFrame:getWidth(), math.floor(infoFrame:getHeight() * (5/6))):setBackground(colors.gray)
+
+local fileNameLabel = infoScrollFrame:addLabel()
+:setSize(main:getWidth() / 3, math.floor(main:getHeight() / 6))
+:setText("")
+:setForeground(colors.white)
+:alignTop(infoScrollFrame, math.floor(infoScrollFrame:getHeight() / 12))
+:alignLeft(infoScrollFrame, math.floor(infoScrollFrame:getWidth() / 12))
+
+local fileDescLabel = infoScrollFrame
+:addLabel()
+:setSize(main:getWidth() / 3, math.floor(main:getHeight() / 3))
+:setForeground(colors.white)
+:setAutoSize(false)
+:alignBottom(fileNameLabel,0)
+:alignLeft(infoScrollFrame, math.floor(infoScrollFrame:getWidth() / 12))
 fileDescLabel:setText("")
 
-local installButton = infoFrame:addButton():setBackground(colors.green):setSize(20,5):setPosition(2, 15):setText("Install"):setVisible(false)
+local installButton = infoFrame:addButton():setBackground(colors.green):setSize(infoFrame:getWidth(), math.floor(infoFrame:getHeight() / 6)):setText("Install"):alignBottom(infoFrame, 0)
+-- Info Frame UI
 
-local installFrame = main:addFrame():setBackground(colors.blue):setSize(60,20):setVisible(false)
+local installFrame = main:addFrame():setBackground(colors.blue):setSize(main:getWidth(), main:getHeight()):setVisible(false)
 
-local exitInstallMenuButton = installFrame:addButton():setBackground(colors.green):setSize(10,5):setText("Exit"):setPosition(0,15)
+local exitInstallMenuButton = installFrame:addButton():setBackground(colors.green):setSize(installFrame:getWidth() / 6, installFrame:getHeight() / 6):setText("Exit"):setPosition(0,15)
 
-local installLabel = installFrame:addLabel():setForeground(colors.white):setAutoSize(false):setSize(30, 3)
+local installLabel = installFrame:addLabel():setForeground(colors.white):setAutoSize(false):setSize(installFrame:getWidth() / 2, installFrame:getHeight() / 10 )
 installLabel:setText("")
 
 main:addLabel()
@@ -72,7 +88,7 @@ local fileTable =
 
     {
         name  = "ARC Mobile",
-        description = "Script that displays data to attached monitors from the manager computer.",
+        description = "Currently WIP and is not implemented yet. This is just a test.",
         link = "https://raw.githubusercontent.com/Nooble12/CC-Tweaked-Adaptive-Reactor-Control-ARC-/refs/heads/ARC-V1/MekanismReactorControl/src/ARC_Monitor.lua"
     }
 }
@@ -154,10 +170,11 @@ local function HandleButtonClick(inButton, index)
 end
 
 local function AddButtonsToScrollBar()
-    local buttonHeight = 8
-    local buttonWidth = 30
+    local buttonHeight = math.floor(scrollFrame:getHeight() / 3) 
+    local buttonWidth = math.floor(scrollFrame:getWidth() * (11/12))
     for index, file in ipairs(fileTable) do
-        local button = scrollFrame:addButton():setPosition(1, (index - 1) * buttonHeight):setBackground(colors.gray):setText(file.name):setSize(buttonWidth,buttonHeight):setForeground(colors.white)
+        local button = scrollFrame:addButton():setBackground(colors.gray):setText(file.name):setSize(buttonWidth,buttonHeight):setForeground(colors.white):alignLeft(scrollFrame,0)
+        button:setPosition(0, (index - 1) * buttonHeight)
         button:onClick(function (self)
             HandleButtonClick(button, index)
         end)
