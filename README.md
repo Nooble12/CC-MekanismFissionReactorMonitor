@@ -16,7 +16,7 @@ https://github.com/Pyroxenium/Basalt2
 # Installation
 ## ARC_Installer
 To simplify the process, ARC-related scripts can be installed via the dedicated ARC_Installer.lua. You may also opt to install the code manually from the "src" folder.
-1) In the computer's shell, type: "wget run https://raw.githubusercontent.com/Nooble12/CC-Tweaked-Adaptive-Reactor-Control-ARC-/refs/heads/ARC-V1/MekanismReactorControl/Installers/ARC_Installer.lua"
+1) In the computer's shell, type: "wget https://raw.githubusercontent.com/Nooble12/CC-Tweaked-Adaptive-Reactor-Control-ARC-/refs/heads/ARC-V1/MekanismReactorControl/Installers/ARC_Installer.lua" Then run "ARC_Installer.lua" on your computer and select the needed program to install.
 
 ## ARC_Manager
 2) Place a computer on the fission reactor's Logic Adapter port.
@@ -41,12 +41,12 @@ To simplify the process, ARC-related scripts can be installed via the dedicated 
 ## ARC_Manager
 <img width="2560" height="1440" alt="2026-01-28_00 44 33" src="https://github.com/user-attachments/assets/80e22d3a-d28d-4bc7-b924-9063c3efdb19" />
 
+## Black screen issue
+If the monitor screen remains black despite the program running and the correct installation, simply restart the program. It happens on the first bootup for some strange reason. 
+
 # Not working?
 ## Did you install Basalt UI Framework? Release (Full) 
 To download the Basalt Installer UI using a ComputerCraft shell command: wget run https://raw.githubusercontent.com/Pyroxenium/Basalt2/main/install.lua -f
 
 ## No data coming to the monitor?
 Make sure that the "reactorMonitorComputerID" variable in the ARC_Manager is set to the monitor computer's id. To find id, type "id" in the computer's shell.
-
-## Black screen issue
-If the program is running but there is a black screen, restart the program. Not sure why it does this. Happens when you run the program for the first time.
