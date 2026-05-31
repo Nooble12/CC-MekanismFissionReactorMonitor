@@ -302,6 +302,9 @@ end
 --------------------------------------------------------------------------------------------------------------------------------------------------
 --- Interface Startup Screen
 --------------------------------------------------------------------------------------------------------------------------------------------------
+
+os.sleep(0.5) -- Fixes black screen issue on startup for first time.
+
 local startupFrame = mainFrame:addFrame():setBackground(colors.black):setSize(monitor.getSize())
 local displayLabel = startupFrame
     :addBigFont()
