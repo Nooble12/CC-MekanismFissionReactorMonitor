@@ -45,7 +45,7 @@ local fileDescLabel = infoScrollFrame
 :setSize(math.floor(infoScrollFrame:getWidth() * (11/12)), math.floor(infoScrollFrame:getHeight() * (11/12)))
 :setForeground(colors.white)
 :setAutoSize(false)
-:alignBottom(fileNameLabel, math.floor(fileNameLabel:getHeight() * (11/12)))
+:alignBottom(fileNameLabel, math.floor(infoScrollFrame:getHeight() * (1/12)))
 :alignLeft(infoScrollFrame, math.floor(infoScrollFrame:getWidth() * (1/12)))
 fileDescLabel:setText("")
 
@@ -94,8 +94,8 @@ local fileTable =
 
     {
         name  = "ARC Mobile",
-        description = "Currently WIP and is not implemented yet. Soon (TM)",
-        link = "Yareli is best fish"
+        description = "A mobile version for ARC",
+        link = "https://raw.githubusercontent.com/Nooble12/CC-Tweaked-Adaptive-Reactor-Control-ARC-/refs/heads/ARC-V1/MekanismReactorControl/src/ARC_Mobile.lua"
     },
 }
 
