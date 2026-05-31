@@ -165,7 +165,7 @@ local function GetReactorDataTable()
             },
 
             {
-                name = "Max Actual Burn Rate", 
+                name = "Actual Burn Rate", 
                 value = reactor.getActualBurnRate(),
                 unit = "mb/t"
             }
@@ -239,15 +239,23 @@ local function SendData()
     end
 end
 
+local function SendOverrideResponse(inMessage, senderID)
+    rednet.send(senderID, {
+        type = "overrideResponse",
+        message = inMessage
+    })
+end
+
 --Activates / Disables the reactor from a remote computer
 local function ListenForOverride()
 while true do 
     local senderID, message, protocol = rednet.receive()
         if type(message) == "table" and message.type == "ReactorOverrideRequest" then
-            print("Request received")
+            print("Request received from " .. senderID)
             local isRunning = reactor.getStatus()
 
             if (isRunning) then
+                SendOverrideResponse("Reactor Disabled", senderID)
                 reactor.scram()
                 print("Reactor is now off")
             else
@@ -256,6 +264,10 @@ while true do
                 if (#warningTable == 0) then
                     reactor.activate()
                     print("Reactor is now on") 
+                    SendOverrideResponse("Reactor Enabled", senderID)
+                else
+                    print("Request Denied. Reactor Not Safe. Sent to " .. senderID)
+                    SendOverrideResponse("Request Denied.", senderID)
                 end
             end
         end
