@@ -27,26 +27,38 @@ isForceDisabled(): Boolean 	Returns wether the reactor is force disabled.
 setBurnRate(): Number 	Set the desired reactor burn rate. 
 --]]
 
-local reactor = peripheral.find("fissionReactorLogicAdapter")
+local reactor
 local reactorIsOn = false
-local checkCount = 1 -- number of failed reactor checks
+
+--[[
+Runs a pcall to see if data can be pulled from the reactor. Only possible if it is fully assembled.
+]]
+local function CheckIfReactorIsAssembled()
+    local success, result = pcall(reactor.getBurnRate)
+
+    return success
+end
 
 --[[
 Keeps checking for the reactor logic adapter
 ]]
 local function CheckForReactor()
-    while (not reactor and checkCount <= 10) do
+    local isReactorAssembled = false
+    local checkCount = 1 -- number of failed reactor checks
+    while (checkCount <= 10 and not isReactorAssembled) do
         term.clear()
         term.setCursorPos(1,1)
         reactor = peripheral.find("fissionReactorLogicAdapter")
-        if reactor then
-            print("Logic adapter Found")
+        isReactorAssembled = CheckIfReactorIsAssembled()
+        
+        if isReactorAssembled then
+            print("Fission Reactor Found")
         else
             for i = 5, 0, -1 do
                 term.clear()
                 term.setCursorPos(1,1)
 
-                print("Error, could not find logic adapter.")
+                print("Error, could not find fission reactor.")
                 print("Trying again in " .. i .. " seconds.")
                 print("Attempt " .. checkCount .. "/10.")
                 os.sleep(1)
@@ -56,6 +68,8 @@ local function CheckForReactor()
         checkCount = checkCount + 1
     end
     checkCount = 1
+
+    return isReactorAssembled
 end
 
 --[[
@@ -64,7 +78,6 @@ Checks and assigns modem if found
 local function CheckForModem()
     if (rednet.isOpen()) then
         print("Modem Found!")
-    
     else
         print("Modem Not Found!")
     end
@@ -93,9 +106,21 @@ local function ScramReactor()
     reactor.scram()
 end
 
+--[[
+Prints the error message/
+@param errorMessage the pcall result message
+]]
+local function HandleException(errorMessage)
+   -- term.clear()
+    --term.setCursorPos(1,1)
+    print("Error: " .. errorMessage)
+    print("Is the reactor not correctly assembled?")
+end
+
 -- Checks reactor data to ensure that it is running within safe parameters
 local function RunSafetyChecks()
     local warningList = {} -- holds a bunch of warning strings that will be sent to the computer
+
     ------------------------------------------------------
     --- Hard shut off checks
     ------------------------------------------------------
@@ -149,16 +174,14 @@ local function RunSafetyChecks()
     ------------------------------------------------------
     --- Warnings
     ------------------------------------------------------
-    
+
     return warningList
 end 
     
 
 local function GetReactorDataTable()
-
     local reactorData = 
     {
-
         reactorInfo = 
         {
             { -- Warning, changing this object will cause an issue. The monitor code looks for this object to determine the button ACTIVATE or SCRAM state. 
@@ -246,22 +269,26 @@ local function SendData()
     while true do
         local routineTable = {}
 
-        local reactorDataTable = GetReactorDataTable()
-         --Sends potential warning data
-        local warningTable = RunSafetyChecks()
-
-        for _, id in ipairs(computerTargets) do
-            table.insert(routineTable, coroutine.create(function ()
-                rednet.send(id, {
-                    type = "reactorData",
-                    reactorData = reactorDataTable,
-                    warningData = warningTable
-                })
-            end))
-        end
-
-        for _, c in ipairs(routineTable) do
-            coroutine.resume(c)
+        local isReactorDataSuccess, reactorDataResult = pcall(GetReactorDataTable)
+        local isWarningDataSuccess, warningDataResult = pcall(RunSafetyChecks)
+        if (isReactorDataSuccess and isWarningDataSuccess) then
+            for _, id in ipairs(computerTargets) do
+                table.insert(routineTable, coroutine.create(function ()
+                    rednet.send(id, {
+                        type = "reactorData",
+                        reactorData = reactorDataResult,
+                        warningData = warningDataResult
+                    })
+                end))
+            end
+            for _, c in ipairs(routineTable) do
+                coroutine.resume(c)
+            end
+        else
+            -- If reactor can not be found after x attempts, end program loop.
+            if (not CheckForReactor())then
+                break;
+            end
         end
         os.sleep(0.5) -- sleep for 1/2 second to prevent server overload 
     end
@@ -280,7 +307,13 @@ while true do
     local senderID, message, protocol = rednet.receive()
         if type(message) == "table" and message.type == "ReactorOverrideRequest" then
             print("Request received from " .. senderID)
-            local isRunning = reactor.getStatus()
+
+            local success, isRunning = pcall(reactor.getStatus) -- checks if status can be found. prevents requests from crashing manager if reactor is not found or is broken.
+
+            if (not success) then
+                SendOverrideResponse("Reactor not found.", senderID)
+                goto continue
+            end
 
             if (isRunning) then
                 SendOverrideResponse("Reactor Disabled", senderID)
@@ -299,17 +332,20 @@ while true do
                 end
             end
         end
+
+        ::continue::
         os.sleep(0.1)
     end
 end
 
-CheckForReactor()
+local function InitializeReactor()
 
-if (reactor) then
-
-    CheckForModem()
-
-    parallel.waitForAny(ListenForOverride, SendData)
-else
-    print("Program Terminated. Failed to find logic adapter.")
+    if (CheckForReactor()) then
+        CheckForModem()
+        parallel.waitForAny(ListenForOverride, SendData) 
+    else
+        print("Program Terminated. Could not find fission reactor.")
+    end
 end
+
+InitializeReactor()
