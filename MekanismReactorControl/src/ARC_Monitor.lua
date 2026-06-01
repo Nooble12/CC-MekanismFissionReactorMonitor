@@ -238,20 +238,6 @@ local function UpdateMonitor(newDataTable, barTable, labelTable)
     UpdateReactorInfoFrame(newDataTable, labelTable)
 end
 
-local function CheckIfModemFound()
-    while true do
-        if (not rednet.isOpen()) then
-            DisplayError("Error, could not find modem!" , true)
-            local rednetModem = peripheral.find("modem", rednet.open)
-            os.sleep(1)
-        else
-             DisplayError("Found!", false)
-            subFrame:setVisible(true)
-        end
-    os.sleep(1)
-    end
-end
-
 local function UpdateWarningTextBox(warningData)
     for _, line in ipairs(warningData) do
         warningTextBox:setText(line .. "\n")
@@ -266,11 +252,30 @@ local function DisableAlarm()
     redstone.setOutput("left", false)
 end
 
+local function CheckConnection(senderID)
+    --If a package has not received for 3 seconds, show error.
+    if (not senderID) then
+        local rednetModem = peripheral.find("modem", rednet.open) -- attempts to find modem
+        DisplayError("Connection Not Found", true)
+        return false
+    else
+        -- Hides the error frame once connection is found
+        if (errorFrame:getVisible()) then
+            DisplayError("Connection Found Found", false)
+            subFrame:setVisible(true)
+        end
+        return true
+    end
+end
+
 local function ListenForPackage()
     local pairTable = CreateProgressBars() -- contains progressBars objects
     local reactorInfoLabelTable = CreateReactorInfoLabels() -- Holds all the labels for the reactor info frame
     while true do
-        local senderID, message, protocol = rednet.receive()
+        local senderID, message, protocol = rednet.receive(nil, 3)
+
+        CheckConnection(senderID)
+
         if type(message) == "table" and message.type == "reactorData" then
             UpdateMonitor(message.reactorData, pairTable, reactorInfoLabelTable)
             reactorSenderID = senderID
@@ -293,7 +298,7 @@ local rednetModem = peripheral.find("modem", rednet.open)
 -- Main Loop that will update monitor states from the reactor computer via rednet
 local function InitalizeMonitoringSystem()
 
-    parallel.waitForAny(ListenForPackage, CheckIfModemFound)
+    ListenForPackage()
 end
 --------------------------------------------------------------------------------------------------------------------------------------------------
 --- Logic Code
