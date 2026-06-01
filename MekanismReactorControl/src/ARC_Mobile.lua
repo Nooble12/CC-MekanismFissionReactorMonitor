@@ -105,6 +105,18 @@ local reactorInfoFrame = infoTabFrame:addFrame({
 }):below(computerInfoFrame, 0)
 -- Reactor Info Tab --
 
+--- Connection Lost Frame ---
+local errorFrame = interfaceFrame:addFrame({
+    width = interfaceFrame:getWidth(),
+    height = interfaceFrame:getHeight(),
+    background = colors.black,
+})
+
+local errorLabel = errorFrame:addLabel({
+    foreground = colors.red
+}):setText("Error Goes Here")
+--- Connection Lost Frame ---
+
 ------------------------------------------------------------------------------------------------------------------
 --- UI CODE
 ------------------------------------------------------------------------------------------------------------------
@@ -126,6 +138,21 @@ function GetLabelCenterCords(inLabel, inFrame)
     local yPos = math.floor((inFrame:getHeight()) / 2)
 
     return xPos, yPos
+end
+
+local function DisplayErrorFrame(inMessage)
+    errorFrame:setVisible(true)
+    tabControl:setVisible(false)
+    errorLabel:setPosition(GetLabelCenterCords(errorLabel, errorFrame))
+    local blinkAnim = errorLabel:animate()
+        :fadeText("text", inMessage, 1)
+        :sequence()
+        :start()
+end
+
+local function HideDisplayErrorFrame()
+    errorFrame:setVisible(false)
+    tabControl:setVisible(true)
 end
 
 local function UpdateWarningTextBox(warningData)
@@ -310,6 +337,20 @@ local function CreateProgressBars()
     return pairTable
 end
 
+local function CheckConnection(senderID)
+    --If a package has not received for 3 seconds, show error.
+    if (not senderID) then
+        DisplayErrorFrame("Connection Not Found") 
+        return false
+    else
+        -- Hides the error frame once connection is found
+        if (errorFrame:getVisible()) then
+            HideDisplayErrorFrame() 
+        end
+        return true
+    end
+end
+
 --[[
 Listens for packages from the Manager Computer. 
 On package receive, run UpdateMonitor function.
@@ -320,7 +361,10 @@ local function ListenForPackage()
     local reactorInfoLabelTable = CreateReactorInfoLabels() -- Holds all the labels for the reactor info frame
 
     while true do
-        local senderID, message, protocol = rednet.receive()
+        local senderID, message, protocol = rednet.receive(nil, 3) -- 3 seconds until disconnect if no message
+
+        CheckConnection(senderID)
+
         if type(message) == "table" and message.type == "reactorData" then
             UpdateMonitor(message.reactorData, pairTable, reactorInfoLabelTable)
             reactorSenderID = senderID
