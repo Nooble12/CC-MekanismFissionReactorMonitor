@@ -29,24 +29,51 @@ setBurnRate(): Number 	Set the desired reactor burn rate.
 
 local reactor = peripheral.find("fissionReactorLogicAdapter")
 local reactorIsOn = false
+local checkCount = 1 -- number of failed reactor checks
 
-if reactor then
-    print("Fission Reactor Found")
-else
-    print("Error, could not find fission reactor")
+--[[
+Keeps checking for the reactor logic adapter
+]]
+local function CheckForReactor()
+    while (not reactor and checkCount <= 10) do
+        term.clear()
+        term.setCursorPos(1,1)
+        reactor = peripheral.find("fissionReactorLogicAdapter")
+        if reactor then
+            print("Logic adapter Found")
+        else
+            for i = 5, 0, -1 do
+                term.clear()
+                term.setCursorPos(1,1)
+
+                print("Error, could not find logic adapter.")
+                print("Trying again in " .. i .. " seconds.")
+                print("Attempt " .. checkCount .. "/10.")
+                os.sleep(1)
+            end
+        end
+        os.sleep(0.1) 
+        checkCount = checkCount + 1
+    end
+    checkCount = 1
+end
+
+--[[
+Checks and assigns modem if found
+]]
+local function CheckForModem()
+    if (rednet.isOpen()) then
+        print("Modem Found!")
+    
+    else
+        print("Modem Not Found!")
+    end
 end
 
 --Config
 local reactorMaxTemp = 1100 -- kelvin
 
 local rednetModem = peripheral.find("modem", rednet.open)
-
-if (rednet.isOpen()) then
-    print("Modem Found!")
-    
-else
-    print("Modem Not Found!")
-end
 
 local function GetReactorStatusAsString() 
     local reactorIsRunning = reactor.getStatus()
@@ -128,6 +155,7 @@ end
     
 
 local function GetReactorDataTable()
+
     local reactorData = 
     {
 
@@ -275,4 +303,13 @@ while true do
     end
 end
 
-parallel.waitForAny(ListenForOverride, SendData)
+CheckForReactor()
+
+if (reactor) then
+
+    CheckForModem()
+
+    parallel.waitForAny(ListenForOverride, SendData)
+else
+    print("Program Terminated. Failed to find logic adapter.")
+end
