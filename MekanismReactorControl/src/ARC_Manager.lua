@@ -83,6 +83,32 @@ local function CheckForModem()
     end
 end
 
+--[[
+Prints the error message/
+@param errorMessage the pcall result message
+]]
+local function PrintException(errorMessage)
+   if type(errorMessage) == "string" then
+        print("Error: " .. errorMessage) 
+    end
+end
+
+--[[
+Runs a pcall for the input function. If fail, print exception. If sucessful, return the result.
+@param inFunction A passed function that will be ran within a pcall.
+@return result The return of the inputed function or nil if failed.
+]]
+local function SafeCall(inFunction)
+    local success, result = pcall(inFunction)
+
+    if (success) then
+        return result
+    else
+        PrintException(result)
+        return nil
+    end
+end
+
 --Config
 local reactorMaxTemp = 1100 -- kelvin
 
@@ -104,17 +130,6 @@ local function ScramReactor()
     end
 
     reactor.scram()
-end
-
---[[
-Prints the error message/
-@param errorMessage the pcall result message
-]]
-local function HandleException(errorMessage)
-   -- term.clear()
-    --term.setCursorPos(1,1)
-    print("Error: " .. errorMessage)
-    print("Is the reactor not correctly assembled?")
 end
 
 -- Checks reactor data to ensure that it is running within safe parameters
@@ -269,9 +284,18 @@ local function SendData()
     while true do
         local routineTable = {}
 
-        local isReactorDataSuccess, reactorDataResult = pcall(GetReactorDataTable)
-        local isWarningDataSuccess, warningDataResult = pcall(RunSafetyChecks)
-        if (isReactorDataSuccess and isWarningDataSuccess) then
+        -- Pauses the program if reactor is broken
+        if (not CheckIfReactorIsAssembled()) then
+            -- If reactor can not be found after x attempts, end program loop.
+            if (not CheckForReactor())then
+                break;
+            end
+        end
+
+        local reactorDataResult = SafeCall(GetReactorDataTable)
+        local warningDataResult = SafeCall(RunSafetyChecks)
+
+        if (reactorDataResult and warningDataResult ~= nil) then
             for _, id in ipairs(computerTargets) do
                 table.insert(routineTable, coroutine.create(function ()
                     rednet.send(id, {
@@ -284,12 +308,8 @@ local function SendData()
             for _, c in ipairs(routineTable) do
                 coroutine.resume(c)
             end
-        else
-            -- If reactor can not be found after x attempts, end program loop.
-            if (not CheckForReactor())then
-                break;
-            end
         end
+
         os.sleep(0.5) -- sleep for 1/2 second to prevent server overload 
     end
 end
@@ -320,7 +340,7 @@ while true do
                 reactor.scram()
                 print("Reactor is now off")
             else
-                local warningTable = RunSafetyChecks()
+                local warningTable = SafeCall(RunSafetyChecks)
 
                 if (#warningTable == 0) then
                     reactor.activate()
