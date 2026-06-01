@@ -54,7 +54,7 @@ text = "ACTIVATE",
 foreground = colors.white,
 background = colors.green,
 width = overrideTab:getWidth(),
-height = math.floor(overrideTab:getHeight() * 1/2)
+height = math.floor(overrideTab:getHeight() * 1/1)
 }):center()
 
 local nextClickTime = 0 -- second
