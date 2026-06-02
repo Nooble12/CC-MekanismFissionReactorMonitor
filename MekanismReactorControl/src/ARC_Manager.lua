@@ -44,8 +44,7 @@ Keeps checking for the reactor logic adapter
 ]]
 local function CheckForReactor()
     local isReactorAssembled = false
-    local checkCount = 1 -- number of failed reactor checks
-    while (checkCount <= 10 and not isReactorAssembled) do
+    while (not isReactorAssembled) do
         term.clear()
         term.setCursorPos(1,1)
         reactor = peripheral.find("fissionReactorLogicAdapter")
@@ -60,15 +59,11 @@ local function CheckForReactor()
 
                 print("Error, could not find fission reactor.")
                 print("Trying again in " .. i .. " seconds.")
-                print("Attempt " .. checkCount .. "/10.")
                 os.sleep(1)
             end
         end
         os.sleep(0.1) 
-        checkCount = checkCount + 1
     end
-    checkCount = 1
-
     return isReactorAssembled
 end
 
@@ -286,10 +281,7 @@ local function SendData()
 
         -- Pauses the program if reactor is broken
         if (not CheckIfReactorIsAssembled()) then
-            -- If reactor can not be found after x attempts, end program loop.
-            if (not CheckForReactor())then
-                break;
-            end
+            CheckForReactor()
         end
 
         local reactorDataResult = SafeCall(GetReactorDataTable)
