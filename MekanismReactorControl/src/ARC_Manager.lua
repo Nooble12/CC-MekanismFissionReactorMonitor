@@ -29,27 +29,22 @@ setBurnRate(): Number 	Set the desired reactor burn rate.
 
 local reactor
 local reactorIsOn = false
-
---[[
-Runs a pcall to see if data can be pulled from the reactor. Only possible if it is fully assembled.
-]]
-local function CheckIfReactorIsAssembled()
-    local success, result = pcall(reactor.getBurnRate)
-
-    return success
-end
+local warningList = {}
+local isReactorAssembled = false
 
 --[[
 Keeps checking for the reactor logic adapter
 ]]
-local function CheckForReactor()
-    local isReactorAssembled = false
+local function FindReactor()
+    isReactorAssembled = false
     while (not isReactorAssembled) do
         term.clear()
         term.setCursorPos(1,1)
         reactor = peripheral.find("fissionReactorLogicAdapter")
-        isReactorAssembled = CheckIfReactorIsAssembled()
-        
+
+        local success, result = pcall(reactor.getBurnRate) 
+        isReactorAssembled = success
+
         if isReactorAssembled then
             print("Fission Reactor Found")
         else
@@ -64,7 +59,21 @@ local function CheckForReactor()
         end
         os.sleep(0.1) 
     end
-    return isReactorAssembled
+
+    return true
+end
+
+--[[
+Runs a pcall to see if data can be pulled from the reactor. Only possible if it is fully assembled.
+]]
+local function CheckIfReactorIsAssembled()
+    while true do
+        local success, result = pcall(reactor.getBurnRate) 
+        if (not success) then
+            FindReactor()
+        end
+        os.sleep(0.1)
+    end
 end
 
 --[[
@@ -99,7 +108,6 @@ local function SafeCall(inFunction)
     if (success) then
         return result
     else
-        PrintException(result)
         return nil
     end
 end
@@ -127,41 +135,40 @@ local function ScramReactor()
     reactor.scram()
 end
 
--- Checks reactor data to ensure that it is running within safe parameters
-local function RunSafetyChecks()
-    local warningList = {} -- holds a bunch of warning strings that will be sent to the computer
 
+local function RunHardShutChecks()
     ------------------------------------------------------
     --- Hard shut off checks
     ------------------------------------------------------
     if (reactor.getTemperature() > 1100) then
         ScramReactor()
         table.insert(warningList, "SCRAM: Maximum core temperature was exceeded.")
-        return warningList
+        return true
     end
 
     if ((reactor.getCoolantFilledPercentage() * 100) < 30) then
         ScramReactor()
         table.insert(warningList, "SCRAM: Insufficent coolant.")
-        return warningList
+        return true
     end
 
     if ((reactor.getWasteFilledPercentage()* 100 >= 90)) then
         ScramReactor()
         table.insert(warningList, "SCRAM: Maximum nulcear waste limit was exceeded.")
-        return warningList
+        return true
     end
 
      if ((reactor.getHeatedCoolantFilledPercentage() * 100 >= 90)) then
         ScramReactor()
         table.insert(warningList, "SCRAM: Maximum steam limit was exceeded.")
-        return warningList
+        return true
     end
     ------------------------------------------------------
     --- Hard shut off checks
     ------------------------------------------------------
+end
 
-
+local function RunWarningChecks()
     ------------------------------------------------------
     --- Warnings
     ------------------------------------------------------
@@ -184,8 +191,21 @@ local function RunSafetyChecks()
     ------------------------------------------------------
     --- Warnings
     ------------------------------------------------------
+end
 
-    return warningList
+-- Checks reactor data to ensure that it is running within safe parameters
+local function RunSafetyChecks()
+local deltaTime = 0.1 -- seconds
+
+while true do
+    local isCritical = SafeCall(RunHardShutChecks)
+
+    if (not isCritical) then
+        SafeCall(RunWarningChecks) 
+    end
+    
+    os.sleep(deltaTime)
+    end
 end 
     
 
@@ -279,21 +299,14 @@ local function SendData()
     while true do
         local routineTable = {}
 
-        -- Pauses the program if reactor is broken
-        if (not CheckIfReactorIsAssembled()) then
-            CheckForReactor()
-        end
-
-        local reactorDataResult = SafeCall(GetReactorDataTable)
-        local warningDataResult = SafeCall(RunSafetyChecks)
-
-        if (reactorDataResult and warningDataResult ~= nil) then
+        local reactorDataResult = SafeCall(GetReactorDataTable) 
+        if ((reactorDataResult and warningList ~= nil)) then
             for _, id in ipairs(computerTargets) do
                 table.insert(routineTable, coroutine.create(function ()
                     rednet.send(id, {
                         type = "reactorData",
                         reactorData = reactorDataResult,
-                        warningData = warningDataResult
+                        warningData = warningList
                     })
                 end))
             end
@@ -302,6 +315,7 @@ local function SendData()
             end
         end
 
+        warningList = {} -- resets the table
         os.sleep(0.5) -- sleep for 1/2 second to prevent server overload 
     end
 end
@@ -332,9 +346,7 @@ while true do
                 reactor.scram()
                 print("Reactor is now off")
             else
-                local warningTable = SafeCall(RunSafetyChecks)
-
-                if (#warningTable == 0) then
+                if (#warningList == 0) then
                     reactor.activate()
                     print("Reactor is now on") 
                     SendOverrideResponse("Reactor Enabled", senderID)
@@ -352,12 +364,15 @@ end
 
 local function InitializeReactor()
 
-    if (CheckForReactor()) then
-        CheckForModem()
-        parallel.waitForAny(ListenForOverride, SendData) 
-    else
-        print("Program Terminated. Could not find fission reactor.")
+    reactor = peripheral.find("fissionReactorLogicAdapter")
+    local success, result = pcall(reactor.getBurnRate) 
+    if (not success) then 
+        FindReactor()
     end
+
+    CheckForModem()
+    parallel.waitForAny(ListenForOverride, SendData,  RunSafetyChecks, CheckIfReactorIsAssembled) 
+
 end
 
 InitializeReactor()
