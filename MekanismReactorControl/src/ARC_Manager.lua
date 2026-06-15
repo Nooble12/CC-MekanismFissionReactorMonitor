@@ -138,7 +138,8 @@ end
 --[[
 Calculates the remaining time left using rates of change. For example, time left until there is zero water.
 Uses exponential moving average (EMA)
-
+@param valueTable A table that contains information about the coolant.
+@deltaTime The elasped time.
 ]]
 local function CalculateTimeLeft(valueTable, deltaTime)
     local alpha = 0.5 -- between 0 and 1. Lower is smoother but slower reaction
@@ -226,6 +227,9 @@ local function RunWarningChecks()
     ------------------------------------------------------
 end
 
+--[[
+Determines if the reactor should be disabled or not based on the calculated remaining time.
+]]
 local function RunOptiGuard(coolantTable, deltaTime)
     -- Prevents nan issue
     if deltaTime <= 0 or reactor.getStatus() == false then 
