@@ -2,6 +2,12 @@
 local computerTargets = {-1, -2} 
 
 --[[
+@author Nooble12 | https://github.com/Nooble12
+@repo https://github.com/Nooble12/CC-Tweaked-Adaptive-Reactor-Control-ARC-
+Manager program for ARC. Controls and monitors the reactor.
+]]
+
+--[[
 Method Name 	Additional Info
 activate(): 	Will activate the reactor.
 scram(): 	Will, you guessed it, scram the reactor.
@@ -102,8 +108,8 @@ Runs a pcall for the input function. If fail, print exception. If sucessful, ret
 @param inFunction A passed function that will be ran within a pcall.
 @return result The return of the inputed function or nil if failed.
 ]]
-local function SafeCall(inFunction)
-    local success, result = pcall(inFunction)
+local function SafeCall(inFunction, ...)
+    local success, result = pcall(inFunction, ...)
 
     if (success) then
         return result
@@ -135,6 +141,40 @@ local function ScramReactor()
     reactor.scram()
 end
 
+--[[
+Calculates the remaining time left using rates of change. For example, time left until there is zero water.
+Uses exponential moving average (EMA)
+@param valueTable A table that contains information about the coolant.
+@deltaTime The elasped time.
+]]
+local function CalculateTimeLeft(valueTable, deltaTime)
+    local alpha = 0.5 -- between 0 and 1. Lower is smoother but slower reaction
+
+    if (not valueTable.previousValue) then
+        valueTable.previousValue = valueTable.currentValue
+    end
+
+    local instant_rate_of_change = (valueTable.currentValue - valueTable.previousValue) / deltaTime
+
+    if (valueTable.smoothRate == nil) then
+        valueTable.smoothRate = instant_rate_of_change
+    end
+
+    -- EMA
+    valueTable.smoothRate = (alpha * instant_rate_of_change) + (1 - alpha) * valueTable.smoothRate
+
+   -- print(valueTable.smoothRate)
+
+    -- If the rate is 0 or close enough, there is basically infinite time left. Math nerds are not gonna like this.
+    if math.abs(valueTable.smoothRate) < 1e-6 then
+        valueTable.smoothRate = 0
+        return math.huge
+    end
+
+    valueTable.previousValue = valueTable.currentValue
+    return (valueTable.currentValue / valueTable.smoothRate) 
+end
+
 
 local function RunHardShutChecks()
     ------------------------------------------------------
@@ -146,19 +186,19 @@ local function RunHardShutChecks()
         return true
     end
 
-    if ((reactor.getCoolantFilledPercentage() * 100) < 30) then
+    if ((reactor.getCoolantFilledPercentage() * 100) < 50) then
         ScramReactor()
         table.insert(warningList, "SCRAM: Insufficent coolant.")
         return true
     end
 
-    if ((reactor.getWasteFilledPercentage()* 100 >= 90)) then
+    if ((reactor.getWasteFilledPercentage()* 100 >= 80)) then
         ScramReactor()
         table.insert(warningList, "SCRAM: Maximum nulcear waste limit was exceeded.")
         return true
     end
 
-     if ((reactor.getHeatedCoolantFilledPercentage() * 100 >= 90)) then
+     if ((reactor.getHeatedCoolantFilledPercentage() * 100 >= 80)) then
         ScramReactor()
         table.insert(warningList, "SCRAM: Maximum steam limit was exceeded.")
         return true
@@ -177,7 +217,7 @@ local function RunWarningChecks()
         table.insert(warningList, "Danger: Critical core temperature.")
     end
 
-    if ((reactor.getCoolantFilledPercentage() * 100) < 50) then
+    if ((reactor.getCoolantFilledPercentage() * 100) < 70) then
         table.insert(warningList, "Danger: Coolant is low.")
     end
 
@@ -185,7 +225,7 @@ local function RunWarningChecks()
         table.insert(warningList, "Danger: Excess nuclear waste.")
     end
 
-     if ((reactor.getHeatedCoolantFilledPercentage() * 100 >= 90)) then
+     if ((reactor.getHeatedCoolantFilledPercentage() * 100 >= 70)) then
         table.insert(warningList, "Danger: Excess steam.")
     end
     ------------------------------------------------------
@@ -193,18 +233,82 @@ local function RunWarningChecks()
     ------------------------------------------------------
 end
 
+--[[
+Determines if the reactor should be disabled or not based on the calculated remaining time.
+]]
+local function RunOptiGuard(coolantTable, deltaTime)
+    -- Prevents nan issue
+    if deltaTime <= 0 or reactor.getStatus() == false then 
+        return   
+    end
+
+    local maxAllowedTime = 300 -- seconds
+
+    -- Sets the current values for the tables
+    coolantTable.currentValue = reactor.getCoolantFilledPercentage() * 100
+    ---
+
+    local coolantTimeLeft = math.floor(CalculateTimeLeft(coolantTable, deltaTime)) 
+
+    if ((coolantTimeLeft) >= 0) then
+        return
+    end
+
+    term.clear()
+    term.setCursorPos(1,1)
+    print("OptiGuard: Coolant loss detected")
+    print("SCRAM IN: " .. math.abs((math.abs(coolantTimeLeft) - maxAllowedTime)) .. " Seconds")
+    print(math.abs(coolantTimeLeft) .. " Seconds until zero coolant")
+    table.insert(warningList, "Coolant loss detected")
+
+    -- 300 seconds or 5 minutes
+    if (math.abs(coolantTimeLeft) < maxAllowedTime) then
+        ScramReactor()
+        table.insert(warningList, "Optiguard Predicted Unsafe Conditions")
+    end
+end
+
 -- Checks reactor data to ensure that it is running within safe parameters
 local function RunSafetyChecks()
-local deltaTime = 0.1 -- seconds
+local lastTime = os.clock()
+
+local coolantTable = {
+        name = "Coolant",
+        currentValue = 0,
+        previousValue = nil,
+        smoothRate = nil
+    }
+
+local steamTable = {
+        name = "Steam",
+        currentValue = 0,
+        previousValue = nil,
+        smoothRate = nil
+    }
+
+local wasteTable = {
+        name = "Coolant",
+        currentValue = 0,
+        previousValue = nil,
+        smoothRate = nil
+    }
 
 while true do
+
+    -- Calculates the delta time
+    local currentTime = os.clock()
+    local deltaTime = currentTime - lastTime
+    lastTime = currentTime
+
+    SafeCall(RunOptiGuard, coolantTable, deltaTime)
+
     local isCritical = SafeCall(RunHardShutChecks)
 
     if (not isCritical) then
         SafeCall(RunWarningChecks) 
     end
     
-    os.sleep(deltaTime)
+    os.sleep(0)
     end
 end 
     
