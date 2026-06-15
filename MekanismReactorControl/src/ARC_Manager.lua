@@ -180,19 +180,19 @@ local function RunHardShutChecks()
         return true
     end
 
-    if ((reactor.getCoolantFilledPercentage() * 100) < 30) then
+    if ((reactor.getCoolantFilledPercentage() * 100) < 50) then
         ScramReactor()
         table.insert(warningList, "SCRAM: Insufficent coolant.")
         return true
     end
 
-    if ((reactor.getWasteFilledPercentage()* 100 >= 90)) then
+    if ((reactor.getWasteFilledPercentage()* 100 >= 80)) then
         ScramReactor()
         table.insert(warningList, "SCRAM: Maximum nulcear waste limit was exceeded.")
         return true
     end
 
-     if ((reactor.getHeatedCoolantFilledPercentage() * 100 >= 90)) then
+     if ((reactor.getHeatedCoolantFilledPercentage() * 100 >= 80)) then
         ScramReactor()
         table.insert(warningList, "SCRAM: Maximum steam limit was exceeded.")
         return true
@@ -211,7 +211,7 @@ local function RunWarningChecks()
         table.insert(warningList, "Danger: Critical core temperature.")
     end
 
-    if ((reactor.getCoolantFilledPercentage() * 100) < 50) then
+    if ((reactor.getCoolantFilledPercentage() * 100) < 70) then
         table.insert(warningList, "Danger: Coolant is low.")
     end
 
@@ -219,7 +219,7 @@ local function RunWarningChecks()
         table.insert(warningList, "Danger: Excess nuclear waste.")
     end
 
-     if ((reactor.getHeatedCoolantFilledPercentage() * 100 >= 90)) then
+     if ((reactor.getHeatedCoolantFilledPercentage() * 100 >= 70)) then
         table.insert(warningList, "Danger: Excess steam.")
     end
     ------------------------------------------------------
