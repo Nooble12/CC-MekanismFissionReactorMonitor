@@ -104,7 +104,7 @@ local function PrintException(errorMessage)
 end
 
 --[[
-Runs a pcall for the input function. If fail, print exception. If sucessful, return the result.
+Runs a pcall for the input function and its parameters.
 @param inFunction A passed function that will be ran within a pcall.
 @return result The return of the inputed function or nil if failed.
 ]]
@@ -123,6 +123,9 @@ local reactorMaxTemp = 1100 -- kelvin
 
 local rednetModem = peripheral.find("modem", rednet.open)
 
+--[[
+@return A string that indicates if the reactor is on or off.
+]]
 local function GetReactorStatusAsString() 
     local reactorIsRunning = reactor.getStatus()
 
@@ -133,6 +136,9 @@ local function GetReactorStatusAsString()
     end
 end
 
+--[[
+SCRAM / Disables the reactor.
+]]
 local function ScramReactor()
     if (reactor.getStatus() == false) then
         return
@@ -146,6 +152,7 @@ Calculates the remaining time left using rates of change. For example, time left
 Uses exponential moving average (EMA)
 @param valueTable A table that contains information about the coolant.
 @deltaTime The elasped time.
+@return The remaining time if there is a rate of change or returns math.huge if there is no rate of change.
 ]]
 local function CalculateTimeLeft(valueTable, deltaTime)
     local alpha = 0.5 -- between 0 and 1. Lower is smoother but slower reaction
@@ -175,7 +182,9 @@ local function CalculateTimeLeft(valueTable, deltaTime)
     return (valueTable.currentValue / valueTable.smoothRate) 
 end
 
-
+--[[
+Checks the temperature, coolant, waste, and steam levels to ensure that they do not exceed safe limits. If they do, the reactor will be disabled.
+]]
 local function RunHardShutChecks()
     ------------------------------------------------------
     --- Hard shut off checks
@@ -208,6 +217,9 @@ local function RunHardShutChecks()
     ------------------------------------------------------
 end
 
+--[[
+Checks the temperature, coolant, waste, steam levels, and sends a warning message if levels exceed suggested limits.
+]]
 local function RunWarningChecks()
     ------------------------------------------------------
     --- Warnings
@@ -235,6 +247,8 @@ end
 
 --[[
 Determines if the reactor should be disabled or not based on the calculated remaining time.
+@param coolantTable A table that contains the coolant data such as current and previous values
+@param deltaTime A calculated time between os.clock times. Used to calculate the raw derivative.
 ]]
 local function RunOptiGuard(coolantTable, deltaTime)
     -- Prevents nan issue
@@ -312,7 +326,10 @@ while true do
     end
 end 
     
-
+--[[
+Gets data from the reactor.
+@return a table that contains fission reactor data
+]]
 local function GetReactorDataTable()
     local reactorData = 
     {
@@ -399,6 +416,11 @@ local function GetReactorDataTable()
     return reactorData
 end
 
+--[[
+Sends packages to monitor or mobile computers.
+Packages contain the reactorData and warnings if any.
+Sends every 1/2 seconds.
+]]
 local function SendData()
     while true do
         local routineTable = {}
@@ -431,7 +453,10 @@ local function SendOverrideResponse(inMessage, senderID)
     })
 end
 
---Activates / Disables the reactor from a remote computer
+--[[
+Activates / Disables the reactor from a remote computer
+Determines if the request should be accepted or denied based on reactor safety checks.
+--]]
 local function ListenForOverride()
 while true do 
     local senderID, message, protocol = rednet.receive()
@@ -466,6 +491,12 @@ while true do
     end
 end
 
+--[[
+Initalizes the program. 
+Checks if reactor is found. If not, continue checking.
+Checks for a modem to send wireless data (not required)
+Runs ListenForOverride, SendData, RunSafetyChecks, and CheckIfReactorIsAssembled in "parallel"
+]]
 local function InitializeReactor()
 
     reactor = peripheral.find("fissionReactorLogicAdapter")
